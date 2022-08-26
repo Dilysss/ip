@@ -5,19 +5,26 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Storage {
 
-    private final String filePath;
+    private String filePath;
     //private File file;
 
-    public Storage(String filePath) throws DukeException {
+    public Storage(String filePath) {
 
         this.filePath = filePath;
     }
 
+    /**
+     * Saves tasks to file.
+     *
+     * @param tasklist Tasklist to be saved.
+     * @throws DukeException If file is unable to be saved.
+     */
     public void save(TaskList tasklist) throws DukeException {
         try {
             FileWriter fw = new FileWriter(filePath);
@@ -30,16 +37,20 @@ public class Storage {
         }
     }
 
+    /**
+     * Loads tasks from file.
+     *
+     * @return Tasklist containing tasks.
+     * @throws DukeException If file cannot be created.
+     * @throws FileNotFoundException  If file cannot be found.
+     */
     public TaskList load() throws DukeException, FileNotFoundException {
         ArrayList<Task> taskArr = new ArrayList<>();
-
+        File file = new File(filePath);
         try {
-            File file = new File(filePath);
 
             if (file.createNewFile()) {
                 System.out.println("File created");
-            } else {
-                System.out.println("File already exists");
             }
         } catch (Exception de) {
             throw new DukeException("New file can't be created");
@@ -50,33 +61,22 @@ public class Storage {
             Scanner sc = new Scanner(dukeFile);
 
             while (sc.hasNext()) {
-                //taskArr.add(sc.next());
-
-                /**String[] strArr = sc.next().split("|");
-                if (strArr[0].equals("T")) {
+                String[] strArr = sc.nextLine().split("\\|");
+                if (strArr[0].contains("T")) {
                     taskArr.add(new ToDos(strArr[2]));
                 }
-                if (strArr[0].equals("E")) {
-                    taskArr.add(new Events(strArr[2], LocalDateTime.parse(strArr[3])));
+                if (strArr[0].contains("E")) {
+                    String str = strArr[3];
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern(" dd MMM yyyy HH:mm");
+                    LocalDateTime ldt = LocalDateTime.parse(str, formatter);
+                    taskArr.add(new Events(strArr[2], ldt));
                 }
-                if (strArr[0].equals("D")) {
-                    taskArr.add(new Deadlines(strArr[2], LocalDateTime.parse(strArr[3])));
-                }*/
-                if (sc.next().startsWith("D")) {
-                    String desc = descStr(sc.next());
-                    String date = dateStr(sc.next());
-                    taskArr.add(new Deadlines(desc, LocalDateTime.parse(date)));
+                if (strArr[0].contains("D")) {
+                    String str = strArr[3];
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern(" dd MMM yyyy HH:mm");
+                    LocalDateTime ldt = LocalDateTime.parse(str, formatter);
+                    taskArr.add(new Deadlines(strArr[2], ldt));
                 }
-                if (sc.next().startsWith("T")) {
-                    taskArr.add(new ToDos(sc.next().substring(6)));
-                }
-                if (sc.next().startsWith("E")) {
-                    String desc = descStr(sc.next());
-                    String date = dateStr(sc.next());
-                    taskArr.add(new Events(desc, LocalDateTime.parse(date)));
-                }
-
-                //System.out.println(sc.nextLine());
             }
             sc.close();
             return new TaskList(taskArr);
@@ -85,21 +85,4 @@ public class Storage {
         }
     }
 
-    private String descStr(String str) {
-        int k = 6;
-        String desc = "";
-
-        while (str.charAt(k) != '(') {
-            desc += str.charAt(k);
-            k++;
-        }
-        return desc;
-    }
-
-    private String dateStr(String str) {
-        int atIndex = str.indexOf("(at: ");
-        int start = atIndex + 5;
-        String date = str.substring(start, str.length() - 1);
-        return date;
-    }
 }
