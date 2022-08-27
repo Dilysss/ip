@@ -11,7 +11,7 @@ import java.util.Objects;
 import java.util.Scanner;
 
 /**
- * Represents the Duke bot
+ * Represents the Duke bot.
  */
 public class Duke {
     private static Ui ui;
